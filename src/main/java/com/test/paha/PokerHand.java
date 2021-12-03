@@ -4,22 +4,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PokerHand implements Comparable<PokerHand> {
+    private final List<Card> cardList;
+    private final Map<Byte, Integer> countOfSameValue = new TreeMap<>();
     private int handValueId;
     private byte strongCardId;
-    private final List<Card> cards;
-    private final Map<Byte, Integer> countOfSameValue = new TreeMap<>();
+    private byte kickerId;
 
     public PokerHand(String cards) {
-        this.cards = Arrays.stream(cards.split(" ", 5))
+        this.cardList = Arrays.stream(cards.split(" ", 5))
                 .map(x -> new Card(x.charAt(0), x.charAt(1)))
                 .collect(Collectors.toList());
-        this.cards.sort(Comparator.comparingInt(Card::getValue));
-        strongCardId = this.cards.get(this.cards.size()-1).getValue();
+        cardList.sort(Comparator.comparingInt(Card::getValue));
+        strongCardId = cardList.get(cardList.size() - 1).getValue();
         initCountOfSameValue();
         initHandValue();
     }
 
-    private void initHandValue() {
+    void initHandValue() {
         for (int i = 0; i < HandValues.values().length; i++) {
             switch (i) {
                 case 0:
@@ -82,46 +83,47 @@ public class PokerHand implements Comparable<PokerHand> {
         }
     }
 
-    private boolean checkRoyalFlush() {
-        return cards.get(0).getValue() == 10 && checkStraightFlush();
+    boolean checkRoyalFlush() {
+        return cardList.get(0).getValue() == 10 && checkStraightFlush();
     }
 
-    private boolean checkStraightFlush() {
+    boolean checkStraightFlush() {
         return checkFlush() && checkStraight();
     }
 
-    private boolean checkFourOfAKind() {
+    boolean checkFourOfAKind() {
         return checkSameCardCount(4);
     }
 
-    private boolean checkFullHouse() {
+    boolean checkFullHouse() {
         return checkPair() && checkThreeOfAKind();
     }
 
-    private boolean checkFlush() {
-        char suit = cards.get(0).getSuit();
-        for (int i = 1; i < cards.size(); i++) {
-            if (cards.get(i).getSuit() != suit) return false;
+    boolean checkFlush() {
+        char suit = cardList.get(0).getSuit();
+        for (int i = 1; i < cardList.size(); i++) {
+            if (cardList.get(i).getSuit() != suit) return false;
         }
         return true;
     }
 
-    private boolean checkStraight() {
-        byte value = cards.get(0).getValue();
-        for (int i = 1; i < cards.size(); i++) {
-            if (cards.get(i).getValue() != i + value) return false;
+    boolean checkStraight() {
+        byte value = cardList.get(0).getValue();
+        for (int i = 1; i < cardList.size(); i++) {
+            if (cardList.get(i).getValue() != i + value) return false;
         }
         return true;
     }
 
-    private boolean checkThreeOfAKind() {
+    boolean checkThreeOfAKind() {
         return checkSameCardCount(3);
     }
 
-    private boolean checkTwoPairs() {
+    boolean checkTwoPairs() {
         if (!checkPair()) return false;
         for (byte b : countOfSameValue.keySet()) {
             if (b != strongCardId && countOfSameValue.get(b) == 2) {
+                kickerId = (byte) Integer.min(b, strongCardId);
                 strongCardId = (byte) Integer.max(b, strongCardId);
                 return true;
             }
@@ -129,12 +131,12 @@ public class PokerHand implements Comparable<PokerHand> {
         return false;
     }
 
-    private boolean checkPair() {
+    boolean checkPair() {
         return checkSameCardCount(2);
     }
 
-    private void initCountOfSameValue() {
-        for (Card card : cards) {
+    void initCountOfSameValue() {
+        for (Card card : cardList) {
             byte cardId = card.getValue();
             if (countOfSameValue.containsKey(cardId)) {
                 countOfSameValue.put(cardId, countOfSameValue.get(cardId) + 1);
@@ -145,26 +147,42 @@ public class PokerHand implements Comparable<PokerHand> {
     private boolean checkSameCardCount(int count) {
         if (countOfSameValue.containsValue(count)) {
             for (byte b : countOfSameValue.keySet()) {
-                if (countOfSameValue.get(b) == count) strongCardId = b;
+                if (countOfSameValue.get(b) == count) {
+                    strongCardId = b;
+                    TreeMap<Byte, Integer> map = new TreeMap<>(countOfSameValue);
+                    map.remove(b);
+                    kickerId = map.lastKey();
+                }
             }
             return true;
         } else return false;
     }
 
-    public List<Card> getCards() {
-        return cards;
-    }
-
-    public Map<Byte, Integer> getCountOfSameValue() {
-        return countOfSameValue;
-    }
-
-    public int getStrongCardId() {
-        return strongCardId;
+    public int getKickerIfTwoSamePairs() {
+        for (Map.Entry<Byte, Integer> entry : countOfSameValue.entrySet()) {
+            if (entry.getValue() == 1) return entry.getKey();
+        }
+        return 0;
     }
 
     public int getHandValueId() {
         return handValueId;
+    }
+
+    public byte getStrongCardId() {
+        return strongCardId;
+    }
+
+    public byte getKickerId() {
+        return kickerId;
+    }
+
+    public List<Card> getCardList() {
+        return cardList;
+    }
+
+    public Map<Byte, Integer> getCountOfSameValue() {
+        return countOfSameValue;
     }
 
     @Override
@@ -173,28 +191,31 @@ public class PokerHand implements Comparable<PokerHand> {
                 "handValueId=" + handValueId +
                 ", " + HandValues.values()[handValueId].getName() +
                 ", strongCardId=" + strongCardId +
-                ", cards=" + cards.toString() +
-                ", countOfSameValue=" + countOfSameValue +
+                ", kickerId=" + kickerId +
+                ", cards=" + getCardList().toString() +
+                ", countOfSameValue=" + getCountOfSameValue() +
                 '}';
     }
 
     @Override
     public int compareTo(PokerHand pokerHand) {
         int result = handValueId - pokerHand.getHandValueId();
-        return result != 0 ? result : strongCardId - pokerHand.getStrongCardId();
+        result = result != 0 ? result : pokerHand.getStrongCardId() - strongCardId;
+        result = result != 0 ? result : pokerHand.getKickerId() - kickerId;
+        return result != 0 ? result : handValueId != 7 ? result : pokerHand.getKickerIfTwoSamePairs() - getKickerIfTwoSamePairs();
     }
 
     public enum HandValues {
-        RoyalFlush("Royal flush"),
-        StraightFlush("Straight flush"),
-        FourOfAKind("Four of a kind"),
-        FullHouse("Full house"),
-        Flush("Flush"),
-        Straight("Straight"),
-        ThreeOfAKind("Three of a kind"),
-        TwoPairs("Two pairs"),
-        Pair("Pair"),
-        HighCard("HighCard");
+        ROYAL_FLUSH("Royal flush"),
+        STRAIGHT_FlUSH("Straight flush"),
+        FOUR_OF_A_KIND("Four of a kind"),
+        FULL_HOUSE("Full house"),
+        FLUSH("Flush"),
+        STRAIGHT("Straight"),
+        THREE_OF_A_KIND("Three of a kind"),
+        TWO_PAIRS("Two pairs"),
+        PAIR("Pair"),
+        HIGH_CARD("HighCard");
 
         private final String name;
 
@@ -228,7 +249,8 @@ public class PokerHand implements Comparable<PokerHand> {
                 case 'A':
                     this.value = 14;
                     break;
-                default: this.value = Byte.parseByte(String.valueOf(value));
+                default:
+                    this.value = Byte.parseByte(String.valueOf(value));
             }
             this.suit = suit;
         }
