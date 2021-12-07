@@ -9,6 +9,7 @@ public class PokerHand implements Comparable<PokerHand> {
     private int handValueId;
     private byte strongCardId;
     private byte kickerId;
+    private final HandValues handValue;
 
     public PokerHand(String cards) {
         this.cardList = Arrays.stream(cards.split(" ", 5))
@@ -18,6 +19,7 @@ public class PokerHand implements Comparable<PokerHand> {
         strongCardId = cardList.get(cardList.size() - 1).getValue();
         initCountOfSameValue();
         initHandValue();
+        handValue = HandValues.values()[handValueId];
     }
 
     void initHandValue() {
@@ -152,17 +154,11 @@ public class PokerHand implements Comparable<PokerHand> {
                     TreeMap<Byte, Integer> map = new TreeMap<>(countOfSameValue);
                     map.remove(b);
                     kickerId = map.lastKey();
+                    break;
                 }
             }
             return true;
         } else return false;
-    }
-
-    public int getKickerIfTwoSamePairs() {
-        for (Map.Entry<Byte, Integer> entry : countOfSameValue.entrySet()) {
-            if (entry.getValue() == 1) return entry.getKey();
-        }
-        return 0;
     }
 
     public int getHandValueId() {
@@ -185,24 +181,68 @@ public class PokerHand implements Comparable<PokerHand> {
         return countOfSameValue;
     }
 
+    public HandValues getHandValue() {
+        return handValue;
+    }
+
     @Override
     public String toString() {
         return "PokerHand{" +
-                "handValueId=" + handValueId +
-                ", " + HandValues.values()[handValueId].getName() +
+                "cardList=" + cardList +
+                ", countOfSameValue=" + countOfSameValue +
+                ", handValueId=" + handValueId +
                 ", strongCardId=" + strongCardId +
                 ", kickerId=" + kickerId +
-                ", cards=" + getCardList().toString() +
-                ", countOfSameValue=" + getCountOfSameValue() +
+                ", handValue=" + handValue +
                 '}';
     }
 
     @Override
     public int compareTo(PokerHand pokerHand) {
-        int result = handValueId - pokerHand.getHandValueId();
-        result = result != 0 ? result : pokerHand.getStrongCardId() - strongCardId;
-        result = result != 0 ? result : pokerHand.getKickerId() - kickerId;
-        return result != 0 ? result : handValueId != 7 ? result : pokerHand.getKickerIfTwoSamePairs() - getKickerIfTwoSamePairs();
+        int result = pokerHand.getHandValueId() - handValueId;
+        result = result != 0 ? result : strongCardId - pokerHand.getStrongCardId();
+        result = result != 0 ? result : kickerId - pokerHand.getKickerId();
+        if (result == 0 && handValueId >= 4 && handValueId != 5) {
+            List<Byte> otherCards = getSingleCardList(pokerHand.getCountOfSameValue());
+            result = compareSingleCards(otherCards);
+        }
+        return result;
+    }
+
+    private int compareSingleCards(List<Byte> otherCards) {
+        List<Byte> cards = getSingleCardList(countOfSameValue);
+
+        int result = 0;
+        for (int i = 0; i < cards.size(); i++) {
+            result = cards.get(i) - otherCards.get(i);
+            if (result != 0) break;
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PokerHand pokerHand = (PokerHand) o;
+        return cardList.equals(pokerHand.cardList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cardList, handValueId, strongCardId, kickerId);
+    }
+
+    public static List<Byte> getSingleCardList(Map<Byte, Integer> countOfSameValue) {
+        List<Byte> result = new ArrayList<>();
+
+        for (Map.Entry<Byte, Integer> entry : countOfSameValue.entrySet()) {
+            if (entry.getValue() == 1) result.add(entry.getKey());
+        }
+        Collections.sort(result);
+        Collections.reverse(result);
+        return result;
     }
 
     public enum HandValues {
@@ -224,6 +264,11 @@ public class PokerHand implements Comparable<PokerHand> {
         }
 
         public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
             return name;
         }
     }
