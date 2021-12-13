@@ -1,4 +1,4 @@
-package com.test.paha;
+package com.testPoker.paha;
 
 public enum HandValues {
     ROYAL_FLUSH("Royal flush"),

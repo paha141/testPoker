@@ -1,4 +1,4 @@
-package com.test.paha;
+package com.testPoker.paha;
 
 public class Card {
     private final byte value;

@@ -1,4 +1,4 @@
-package com.test.paha;
+package com.testPoker.paha;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,61 +8,61 @@ public class PokerHandTest extends Assert {
    @Test
     public void testCheckRoyalFlush() {
        PokerHand pokerHand = new PokerHand("TC JC QC KC AC");
-       Assert.assertEquals(HandValues.ROYAL_FLUSH, pokerHand.getHandValue());
+       assertEquals(HandValues.ROYAL_FLUSH, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckStraightFlush() {
         PokerHand pokerHand = new PokerHand("TC JC 8C 7C 9C");
-        Assert.assertEquals(HandValues.STRAIGHT_FlUSH, pokerHand.getHandValue());
+        assertEquals(HandValues.STRAIGHT_FlUSH, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckFourOfKind() {
         PokerHand pokerHand = new PokerHand("2D 2H 2C KC 2S");
-        Assert.assertEquals(HandValues.FOUR_OF_KIND, pokerHand.getHandValue());
+        assertEquals(HandValues.FOUR_OF_KIND, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckFullHouse() {
         PokerHand pokerHand = new PokerHand("TD JH JS TC JC");
-        Assert.assertEquals(HandValues.FULL_HOUSE, pokerHand.getHandValue());
+        assertEquals(HandValues.FULL_HOUSE, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckFlush() {
         PokerHand pokerHand = new PokerHand("9S JS 7S KS 2S");
-        Assert.assertEquals(HandValues.FLUSH, pokerHand.getHandValue());
+        assertEquals(HandValues.FLUSH, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckStraight() {
         PokerHand pokerHand = new PokerHand("9D JC QH KS TS");
-        Assert.assertEquals(HandValues.STRAIGHT, pokerHand.getHandValue());
+        assertEquals(HandValues.STRAIGHT, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckThreeOfKind() {
         PokerHand pokerHand = new PokerHand("KD KH KC 2C TS");
-        Assert.assertEquals(HandValues.THREE_OF_KIND, pokerHand.getHandValue());
+        assertEquals(HandValues.THREE_OF_KIND, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckTwoPairs() {
         PokerHand pokerHand = new PokerHand("KD KH TC 2C TS");
-        Assert.assertEquals(HandValues.TWO_PAIRS, pokerHand.getHandValue());
+        assertEquals(HandValues.TWO_PAIRS, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckPair() {
         PokerHand pokerHand = new PokerHand("KD KH 5C 2C TS");
-        Assert.assertEquals(HandValues.PAIR, pokerHand.getHandValue());
+        assertEquals(HandValues.PAIR, pokerHand.getHandValue());
     }
 
     @Test
     public void testCheckHighCard() {
         PokerHand pokerHand = new PokerHand("KD 7H TC 2C 9S");
-        Assert.assertEquals(HandValues.HIGH_CARD, pokerHand.getHandValue());
+        assertEquals(HandValues.HIGH_CARD, pokerHand.getHandValue());
     }
 
     @Test

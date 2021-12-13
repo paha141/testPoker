@@ -1,4 +1,4 @@
-package com.test.paha;
+package com.testPoker.paha;
 
 import java.util.ArrayList;
 import java.util.Collections;
